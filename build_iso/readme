@@ -1,0 +1,4 @@
+###生成iso
+##使用reprepro工具将特定位置的包导入到iso目录。注意预先设置配置文件，参见build.sh
+##md5生成
+##xorriso工具生成iso...

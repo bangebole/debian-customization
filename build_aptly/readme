@@ -1,0 +1,18 @@
+###
+##基本流程:
+#添加aptly源，增加key值,这部分可以参考aptly官网
+#gpg --gen-key,生成自己的gpg
+https://blog.csdn.net/styshoo/article/details/56246245
+#创建镜像(在过程中出现key错误参考官方处理办法和附带链接)
+aptly mirror create -architectures=amd64,i386,ppc64el -with-udebs stretch-main http://mirrors.163.com/debian/ stretch main 
+aptly mirror create -architectures=amd64,i386,ppc64el -with-udebs stretch-contrib http://mirrors.163.com/debian/ stretch contrib
+aptly mirror create -architectures=amd64,i386,ppc64el -with-udebs stretch-non-free http://mirrors.163.com/debian/ stretch non-free
+#更新镜像
+#创建快照
+#发布快照
+#使用aptly镜像...
+##key错误处理
+http://www.cnblogs.com/fzhujia/p/4382870.html
+http://kakack.github.io/2016/03/Apt-get%E6%9C%AC%E5%9C%B0%E8%B5%84%E6%BA%90%E5%BA%93%E6%90%AD%E5%BB%BA/
+https://www.aptly.info/doc/aptly/mirror/create/
+gpg.error

@@ -1,0 +1,10 @@
+安装gpgv1和gnupg1 
+导出gpg2密钥+导入gpg1。
+
+apt install gpgv1 gnupg1
+
+gpg --output gpg2_exported_pub.gpg --armor --export xxxxxxxxxxxxxxxxx
+gpg --output gpg2_exported_sec.gpg --armor --export-secret-key xxxxxxxxxxxxxxxxx
+
+gpg1 --import gpg2_exported_pub.gpg
+gpg1 --import --allow-secret-key-import gpg2_exported_sec.gpg
