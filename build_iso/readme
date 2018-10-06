@@ -2,3 +2,102 @@
 ##使用reprepro工具将特定位置的包导入到iso目录。注意预先设置配置文件，参见build.sh
 ##md5生成
 ##xorriso工具生成iso...
+#
+
+#提取ISO
+#方法1
+$ mkdir cd
+$ bsdtar -C cd/ -xf debian-9.3.0-i386-DVD-1.iso
+#方法2
+xorriso -osirrox on -indev debian-9.3.0-i386-netinst.iso -extract / DESTINATION
+#方法3
+udevil mount debian-9.3.0-i386-netinst.iso
+cp -rT /media/debian-9.3.0-i386-netinst.iso/ isofiles/
+
+#修改操作权限
+#chmod -R +w cd
+#
+#apt-move:apt-move是一个专为下载到/var/cache/apt/archives的软件包生成debian仓库的工具。apt-move默认在/mirrors/debian中生成这个本地仓库。再用cp -ar命令将生成的包包括文件夹拷贝到ISO的pool/main路径下
+#
+#/etc/apt-move.conf:设置COPYONLY=no  =>> COPYONLY=yes不会删除/var...路径的软件包
+#apt-move -d <stretch> update :-d,只下载不安装；stretch:版本代号 
+#
+#apt-ftparchive：
+#apt-ftparchive generate config-deb
+####config-deb示例：
+## A config-deb file.
+
+# Points to where the unpacked DVD-1 is.
+Dir {
+    ArchiveDir "cd";
+};
+
+# Sets the top of the .deb directory tree.
+TreeDefault {
+   Directory "pool/";
+};
+
+# The location for a Packages file.
+BinDirectory "pool/main" {
+   Packages "dists/stretch/main/binary-i386/Packages";
+};
+
+# We are only interested in .deb files (.udeb for ubeb files).
+Default {
+   Packages {
+       Extensions ".deb";
+    };
+};
+
+
+#
+#
+#sed -i '/MD5Sum:/,$d' cd/dists/stretch/Release
+#
+#apt-ftparchive release cd/dists/stretch >> cd/dists/stretch/Release
+#
+#修改preseed文件
+#方法1
+#文件引入：txt.cfg
+#方法2
+#写入文件系统
+#
+#
+chmod +w -R isofiles/install.386/
+gunzip isofiles/install.386/initrd.gz
+echo preseed.cfg | cpio -H newc -o -A -F isofiles/install.386/initrd
+gzip isofiles/install.386/initrd
+chmod -w -R isofiles/install.386/
+
+
+#修改md5
+#方法1
+#md5sum `find ! -name "md5sum.txt" ! -path "./isolinux/*" -follow -type f` > md5sum.txt
+#方法2
+#md5sum `find -follow -type f` > md5sum.txt
+#刻盘1
+#dd if=debian-9.3.0-i386-DVD-1.iso bs=1 count=432 of=isohdpfx.bin
+
+xorriso -as mkisofs -o test.iso \
+-isohybrid-mbr isohdpfx.bin \
+-c isolinux/boot.cat -b isolinux/isolinux.bin \
+-no-emul-boot -boot-load-size 4 -boot-info-table ./cd
+#刻盘2
+#
+genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat \                                                    
+            -no-emul-boot -boot-load-size 4 -boot-info-table \                                                           
+            -o preseed-debian-9.3.0-i386-netinst.iso isofiles
+#刻盘3
+#
+xorriso -as mkisofs -o preseed-debian-9.3.0-i386-netinst.iso \
+        -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
+        -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot \
+        -boot-load-size 4 -boot-info-table isofiles
+
+#刻写USB
+#1.删除盘片
+#sudo cfdisk /dev/sdX
+#2.
+#dd if=test.iso bs=4M of=/dev/sdX ; sync
+#其他
+#xorriso -as cdrecord -v dev=/dev/sr0 -eject test.iso
